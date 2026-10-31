@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Autonomous Retail Copilot | Single-Clerk Liquor Store Logistics</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Ambient background glow elements -->
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
+
+  <div class="app-container">
+    <!-- Top Header & Live KPI Ribbon -->
+    <header class="app-header">
+      <div class="brand-section">
+        <div class="brand-logo">
+          <span class="logo-icon">⚡</span>
+          <div class="brand-text">
+            <h1>RETAIL COPILOT <span>v2.4</span></h1>
+            <p>Single-Clerk Autonomous Logistics & Loss Prevention Engine</p>
+          </div>
+        </div>
+        <div class="pos-badge">
+          <span class="status-dot pulsing"></span>
+          <span>POS360 & CCTV ACTIVE</span>
+        </div>
+      </div>
+
+      <!-- Live KPI Metrics Strip -->
+      <div class="kpi-strip">
+        <div class="kpi-item">
+          <span class="kpi-label">Sales Captured</span>
+          <span class="kpi-value positive" id="kpi-sales">$0.00</span>
+        </div>
+        <div class="kpi-item">
+          <span class="kpi-label">Stockout Lost Sales</span>
+          <span class="kpi-value negative" id="kpi-lost-sales">$0.00</span>
+        </div>
+        <div class="kpi-item">
+          <span class="kpi-label">Batch Trips Made</span>
+          <span class="kpi-value highlight" id="kpi-trips">0 <small>(~70% saved)</small></span>
+        </div>
+        <div class="kpi-item">
+          <span class="kpi-label">Thefts Deterred</span>
+          <span class="kpi-value positive" id="kpi-thefts">0</span>
+        </div>
+        <div class="kpi-item">
+          <span class="kpi-label">Cross-Dock Units</span>
+          <span class="kpi-value highlight" id="kpi-crossdock">0</span>
+        </div>
+      </div>
+
+      <!-- Simulation Playback Controls -->
+      <div class="sim-controls">
+        <button id="btn-play-pause" class="btn btn-primary" title="Play or Pause">
+          <span id="play-pause-icon">⏸</span> <span id="play-pause-text">Pause</span>
+        </button>
+        <div class="speed-toggle">
+          <button class="btn-speed active" data-speed="1">1x</button>
+          <button class="btn-speed" data-speed="2">2x</button>
+          <button class="btn-speed" data-speed="5">5x</button>
+        </div>
+        <div class="shift-clock" id="shift-clock">09:00 AM</div>
+      </div>
+    </header>
+
+    <!-- Main Workspace Split Grid -->
+    <main class="main-content">
+      <!-- Left Column: 2D Interactive Store Canvas -->
+      <section class="store-canvas-card">
+        <div class="card-header">
+          <div class="header-title">
+            <span class="indicator live"></span>
+            <h2>Live Physical Floor Plan (2D Digital Twin)</h2>
+          </div>
+          <div class="canvas-legend">
+            <span class="legend-item"><span class="swatch clerk"></span> Clerk</span>
+            <span class="legend-item"><span class="swatch customer"></span> Customer</span>
+            <span class="legend-item"><span class="swatch thief"></span> Suspect Loiterer</span>
+            <span class="legend-item"><span class="swatch high-theft"></span> High-Theft Zone</span>
+          </div>
+        </div>
+
+        <div class="canvas-wrapper">
+          <canvas id="storeCanvas" width="940" height="580"></canvas>
+          <div id="canvas-overlay-banner" class="canvas-overlay-banner hidden">
+            <span id="overlay-banner-icon">🛡️</span>
+            <span id="overlay-banner-text">SECURITY INHIBIT ACTIVE</span>
+          </div>
+        </div>
+
+        <!-- Scenario Quick Action Buttons -->
+        <div class="scenario-actions">
+          <span class="actions-label">Trigger Stress Scenarios:</span>
+          <button class="btn btn-action" id="btn-rush-hour">🔥 Customer Rush Hour</button>
+          <button class="btn btn-action" id="btn-theft-attempt">🚨 Shoplifter Loitering</button>
+          <button class="btn btn-action" id="btn-truck-delivery">🚚 Weekly Truck Delivery (SGWS)</button>
+          <button class="btn btn-action" id="btn-uber-eats">📱 Uber Eats Order</button>
+          <button class="btn btn-secondary" id="btn-reset-sim">↺ Reset Shift</button>
+        </div>
+      </section>
+
+      <!-- Right Column: AI Dispatch HUD, Shelf Heatmap, Security & Inbound PO -->
+      <aside class="copilot-sidebar">
+        <!-- 1. Real-time Restock Dispatch HUD (Smartwatch / Register Card) -->
+        <div class="hud-card" id="dispatch-hud-card">
+          <div class="hud-header">
+            <div class="hud-tag">
+              <span class="pulse-icon">📡</span>
+              <span>SMARTWATCH / REGISTER HUD</span>
+            </div>
+            <div class="safety-score-badge" id="hud-safety-badge">Safety: 94%</div>
+          </div>
+
+          <div class="hud-body">
+            <div class="hud-status-banner safe" id="hud-status-banner">
+              <div class="banner-title" id="hud-banner-title">Quiet Window Open (~180s)</div>
+              <div class="banner-subtitle" id="hud-banner-sub">Register queue clear. Restock batch ready.</div>
+            </div>
+
+            <!-- Restock Pick Batch List -->
+            <div class="hud-batch-list" id="hud-batch-list">
+              <!-- Dynamically populated -->
+            </div>
+
+            <div class="hud-trip-footer">
+              <div class="timer-meter">
+                <div class="timer-label">Estimated Trip: <span id="hud-trip-time">45s</span></div>
+                <div class="timer-bar"><div class="timer-progress" id="hud-timer-progress"></div></div>
+              </div>
+              <button class="btn btn-dispatch" id="btn-exec-dispatch">Acknowledge & Restock</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Single-Facing Shelf Heatmap -->
+        <div class="shelf-heatmap-card">
+          <div class="card-header-compact">
+            <h3>Shelf Facings (No Double-Facing Constraint)</h3>
+            <span class="badge-neutral" id="shelf-stockout-count">0 Out-of-Stock</span>
+          </div>
+          <div class="shelf-grid" id="shelf-grid">
+            <!-- Dynamically populated with single-facing progress bars -->
+          </div>
+        </div>
+
+        <!-- 3. Inbound Delivery Paper PO & Cross-Dock Hub -->
+        <div class="po-hub-card">
+          <div class="card-header-compact">
+            <h3>Supplier Inbound (Paper PO & OCR)</h3>
+            <button class="btn-link" id="btn-open-po-modal">View Paper Manifest</button>
+          </div>
+          <div class="po-mini-summary" id="po-summary-box">
+            <div class="po-distributor-badge">Southern Glazer's Wine & Spirits</div>
+            <div class="po-metrics-row">
+              <span>Next Delivery: <strong>Wednesdays (11:00 AM)</strong></span>
+              <span>Last Invoiced: <strong>9 Cases ($2,274.00)</strong></span>
+            </div>
+            <div class="crossdock-highlight" id="crossdock-banner">
+              <span class="icon">⚡</span>
+              <span class="text">Cross-dock engine auto-routes low shelf SKUs directly on truck arrival!</span>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </main>
+
+    <!-- Modal: Digitized Paper Purchase Order & Cross-Docking Breakdown -->
+    <div class="modal-overlay hidden" id="po-modal">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div class="modal-title-group">
+            <span class="modal-badge">DOCUMENT INTELLIGENCE OCR</span>
+            <h2>Supplier Purchase Order / Delivery Manifest</h2>
+          </div>
+          <button class="btn-close" id="btn-close-modal">✕</button>
+        </div>
+
+        <div class="modal-body">
+          <div class="invoice-paper-mock">
+            <div class="invoice-header">
+              <div>
+                <h3>SOUTHERN GLAZER'S WINE & SPIRITS</h3>
+                <p>2400 Distribution Way, Dallas TX 75201</p>
+                <p>Delivery To: <strong>Downtown Liquors & Fine Spirits</strong></p>
+              </div>
+              <div class="invoice-meta">
+                <p>Invoice #: <strong>SG-1030-9401</strong></p>
+                <p>Date: <strong>2026-10-30</strong></p>
+                <p>Driver: <strong>Carlos M. (Route 4B)</strong></p>
+                <p class="ocr-tag">OCR Confidence: <strong>98.4%</strong></p>
+              </div>
+            </div>
+
+            <!-- Invoiced Table -->
+            <table class="invoice-table">
+              <thead>
+                <tr>
+                  <th>Item Code</th>
+                  <th>Description</th>
+                  <th>Pack</th>
+                  <th>Cases</th>
+                  <th>Bottle Cost</th>
+                  <th>Case Total</th>
+                  <th>Cross-Dock Routing</th>
+                </tr>
+              </thead>
+              <tbody id="invoice-tbody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+
+          <div class="crossdock-action-banner" id="modal-crossdock-alert">
+            <div class="banner-icon">⚡</div>
+            <div class="banner-details">
+              <h4>Cross-Dock Directives Generated (Saves 2 Backroom Trips!)</h4>
+              <p id="modal-crossdock-text">Take 1 unit of Tito's and 6 units of Fireball directly from the pallet to front shelves before stacking.</p>
+            </div>
+            <button class="btn btn-primary" id="btn-apply-crossdock">Apply Putaway Plan</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Event Feed Toast Strip -->
+    <div class="toast-feed" id="toast-feed"></div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
