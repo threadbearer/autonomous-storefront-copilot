@@ -27,7 +27,11 @@ class RestockBatcher:
         max_weight_lbs: float = 24.0,
         partial_case_clear_bonus: float = 1.5,
         max_bottles_per_trip: Optional[int] = None,
+        min_item_urgency: float = 0.2,
+        weight_resolution_lbs: float = 0.1,
     ):
+        self.min_item_urgency = min_item_urgency
+        self.weight_resolution_lbs = weight_resolution_lbs
         if max_units_per_trip is not None:
             self.max_units_per_trip = max_units_per_trip
         elif max_bottles_per_trip is not None:
@@ -112,49 +116,88 @@ class RestockBatcher:
                     )
                 )
 
-        # Sort descending by urgency score
-        scored_candidates.sort(key=lambda x: x.urgency_score, reverse=True)
+        # Skip items that are barely depleted
+        candidates = [c for c in scored_candidates if c.urgency_score >= self.min_item_urgency]
+        if not candidates:
+            return [], 0.0
 
-        # Pack into trip basket respecting payload limits
+        quantities = self.solve_bounded_knapsack(candidates)
+
         basket: List[RestockPickItem] = []
-        current_bottles = 0
-        current_weight = 0.0
         total_trip_score = 0.0
-
-        for candidate in scored_candidates:
-            if candidate.urgency_score < 0.2:
-                continue  # Skip items that are barely depleted
-
+        # Present the basket in descending urgency order for the clerk HUD
+        for candidate, qty in sorted(
+            zip(candidates, quantities), key=lambda pair: pair[0].urgency_score, reverse=True
+        ):
+            if qty <= 0:
+                continue
             sku = candidate.sku
-            units_wanted = candidate.units_to_restock
-
-            # Fit as many units of this SKU as capacity allows
-            for _ in range(units_wanted):
-                if (current_bottles + 1 <= self.max_bottles_per_trip) and (
-                    current_weight + sku.unit_weight_lbs <= self.max_weight_lbs
-                ):
-                    current_bottles += 1
-                    current_weight += sku.unit_weight_lbs
-                else:
-                    break
-
-            # Calculate how many we actually packed for this SKU
-            packed_for_sku = current_bottles - sum(item.quantity for item in basket)
-            if packed_for_sku > 0:
-                basket.append(
-                    RestockPickItem(
-                        sku_id=sku.sku_id,
-                        sku_name=sku.name,
-                        quantity=packed_for_sku,
-                        source_location=candidate.backroom_source,
-                        target_shelf=str(sku.shelf_location),
-                        is_from_partial_case=candidate.from_partial_case,
-                        is_cross_dock=False,
-                    )
+            basket.append(
+                RestockPickItem(
+                    sku_id=sku.sku_id,
+                    sku_name=sku.name,
+                    quantity=qty,
+                    source_location=candidate.backroom_source,
+                    target_shelf=str(sku.shelf_location),
+                    is_from_partial_case=candidate.from_partial_case,
+                    is_cross_dock=False,
                 )
-                total_trip_score += candidate.urgency_score
-
-            if current_bottles >= self.max_bottles_per_trip:
-                break
+            )
+            # A SKU contributes urgency in proportion to how much of its deficit the trip covers
+            total_trip_score += candidate.urgency_score * qty / candidate.units_to_restock
 
         return basket, round(total_trip_score, 2)
+
+    def solve_bounded_knapsack(self, candidates: List[ScoredSKU]) -> List[int]:
+        """Exact bounded knapsack via dynamic programming.
+
+        Each candidate SKU may contribute 0..units_to_restock units. A unit of SKU i is worth
+        urgency_i / units_to_restock_i, so covering a SKU's full shelf deficit earns its full RUI.
+        Constraints: total units <= max_units_per_trip and total weight <= max_weight_lbs.
+        Weights are discretized to `weight_resolution_lbs` (rounded up, so limits are never exceeded).
+
+        Returns the optimal quantity per candidate, in the same order as `candidates`.
+        """
+        unit_cap = self.max_units_per_trip
+        weight_cap = int(self.max_weight_lbs / self.weight_resolution_lbs + 1e-9)
+
+        def unit_weight(c: ScoredSKU) -> int:
+            raw = c.sku.unit_weight_lbs / self.weight_resolution_lbs
+            return max(0, int(raw) if abs(raw - round(raw)) < 1e-9 else int(raw) + 1)
+
+        NEG = float("-inf")
+        # best[u][w] = max value using exactly-or-fewer u units and w weight across processed items
+        best = [[0.0] * (weight_cap + 1) for _ in range(unit_cap + 1)]
+        choices: List[List[List[int]]] = []
+
+        for c in candidates:
+            w_i = unit_weight(c)
+            v_i = c.urgency_score / c.units_to_restock
+            max_k = c.units_to_restock
+            new_best = [[NEG] * (weight_cap + 1) for _ in range(unit_cap + 1)]
+            pick = [[0] * (weight_cap + 1) for _ in range(unit_cap + 1)]
+            for u in range(unit_cap + 1):
+                for w in range(weight_cap + 1):
+                    for k in range(0, min(max_k, u) + 1):
+                        if k * w_i > w:
+                            break
+                        prev = best[u - k][w - k * w_i]
+                        if prev == NEG:
+                            continue
+                        val = prev + k * v_i
+                        # Tie-break toward fewer units (lighter carry) for equal value
+                        if val > new_best[u][w] + 1e-12:
+                            new_best[u][w] = val
+                            pick[u][w] = k
+            best = new_best
+            choices.append(pick)
+
+        # Backtrack from the full-capacity cell (values are monotone in capacity)
+        quantities = [0] * len(candidates)
+        u, w = unit_cap, weight_cap
+        for idx in range(len(candidates) - 1, -1, -1):
+            k = choices[idx][u][w]
+            quantities[idx] = k
+            u -= k
+            w -= k * unit_weight(candidates[idx])
+        return quantities

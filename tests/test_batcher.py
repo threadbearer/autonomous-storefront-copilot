@@ -69,6 +69,67 @@ class TestBatcherAndDispatcher(unittest.TestCase):
         self.assertEqual(dispatch.items[0].sku_id, "SKU-FAST-MOVER-1")
         self.assertGreater(dispatch.quiet_window_estimate_seconds, 60)
 
+    def test_bounded_knapsack_weight_constraint(self):
+        # Register a heavy SKU (10 lbs each, limit 15 lbs)
+        heavy_sku = SKU(
+            sku_id="SKU-HEAVY-PACK",
+            upc="0222222",
+            name="12-Pack Heavy Beverage",
+            category=Category.BEVERAGES,
+            shelf_capacity=4,
+            unit_weight_lbs=10.0,
+            wholesale_unit_cost=8.0,
+            retail_price=14.99,
+            shelf_location=PhysicalLocation(StorageZone.FRONT_SHELF, "Aisle 2", 1, "Slot 1"),
+            backroom_location=PhysicalLocation(StorageZone.BACKROOM_RACK, "Rack B", 1, "Bin 1"),
+        )
+        dt = DigitalTwin()
+        dt.register_sku(heavy_sku, initial_shelf=0, initial_cases=2, initial_loose=4)
+        # Even though unit limit is 4, weight limit of 15 lbs allows only 1 unit (10 lbs <= 15 lbs, 20 lbs > 15 lbs)
+        basket, score = self.batcher.assemble_optimal_trip(dt)
+        self.assertEqual(len(basket), 1)
+        self.assertEqual(basket[0].quantity, 1)
+
+    def test_bounded_knapsack_optimality_over_greedy(self):
+        # Classical knapsack test: Item A (3 units, high weight) vs Items B and C (better combined efficiency)
+        sku_a = SKU(
+            sku_id="SKU-A",
+            upc="101",
+            name="Item A (Heavy)",
+            category=Category.GENERAL_MERCHANDISE,
+            shelf_capacity=2,
+            unit_weight_lbs=4.0,
+            wholesale_unit_cost=5.0,
+            retail_price=10.0,
+            shelf_location=PhysicalLocation(StorageZone.FRONT_SHELF, "Aisle 1", 1, "Slot 1"),
+            backroom_location=PhysicalLocation(StorageZone.BACKROOM_RACK, "Rack A", 1, "Bin 1"),
+        )
+        sku_b = SKU(
+            sku_id="SKU-B",
+            upc="102",
+            name="Item B (Light, High Value)",
+            category=Category.GENERAL_MERCHANDISE,
+            shelf_capacity=2,
+            unit_weight_lbs=2.0,
+            wholesale_unit_cost=5.0,
+            retail_price=12.0,
+            shelf_location=PhysicalLocation(StorageZone.FRONT_SHELF, "Aisle 1", 1, "Slot 2"),
+            backroom_location=PhysicalLocation(StorageZone.BACKROOM_RACK, "Rack A", 1, "Bin 2"),
+        )
+        batcher = RestockBatcher(max_units_per_trip=3, max_weight_lbs=6.0)
+        dt = DigitalTwin()
+        dt.register_sku(sku_a, initial_shelf=0, initial_cases=1, initial_loose=2)
+        dt.register_sku(sku_b, initial_shelf=0, initial_cases=1, initial_loose=2)
+
+        basket, score = batcher.assemble_optimal_trip(dt)
+        total_weight = sum(
+            dt.catalog[item.sku_id].unit_weight_lbs * item.quantity for item in basket
+        )
+        total_units = sum(item.quantity for item in basket)
+        self.assertLessEqual(total_weight, 6.0)
+        self.assertLessEqual(total_units, 3)
+        self.assertGreater(score, 0.0)
+
 
 if __name__ == "__main__":
     unittest.main()

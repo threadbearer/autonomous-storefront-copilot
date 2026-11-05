@@ -45,10 +45,10 @@ The system models the retail storefront as an interconnected, deterministic stat
 flowchart TD
     subgraph Sensors ["Input Streams & Sensor Telemetry"]
         POS["POS Transaction Stream"]
-        CV_Queue["Computer Vision: Register Queue"]
-        CV_Aisle["CCTV Dwell Tracker: High-Value Zones"]
-        Tripwire["Exit Optical Tripwire"]
-        OCR["Document VLM: Supplier Paper Invoices"]
+        CV_Queue["Register Queue Sensor Telemetry"]
+        CV_Aisle["Aisle Dwell Telemetry (High-Value Zones)"]
+        Tripwire["Exit Optical Tripwire Events"]
+        OCR["Supplier Invoice Ingestion (JSON Schema)"]
         App["Courier Delivery App (UberEats/DoorDash)"]
     end
 
@@ -133,18 +133,32 @@ Run the benchmark yourself:
 python3 benchmark.py
 ```
 
-### Benchmark Results:
+### Single 8-Hour Shift Inspection (Seed: 123):
 
 | Operational Metric | Strategy A: Never Restock | Strategy B: Naive Immediate Restock | Strategy C: AI Copilot (Ours) |
 | :--- | :--- | :--- | :--- |
 | **Total Sales Captured** | \$1,196.48 | \$2,506.11 | **\$2,506.11** *(100% captured)* |
 | **Lost Sales from Stockouts** | \$1,309.63 *(critical stockouts)* | \$0.00 | **\$0.00** *(zero lost revenue)* |
 | **Minutes Shelf Was Empty** | 1,096 mins | 0 mins | **0 mins** |
-| **Restock Trips Walked** | 0 trips | 139 trips *(exhausting)* | **70 trips** *(~50% labor saved)* |
-| **Minutes Away From Counter** | 0 mins | 278 mins *(unattended 58% of shift)*| **70 mins** *(85% register presence)*|
+| **Restock Trips Walked** | 0 trips | 139 trips *(exhausting)* | **69 trips** *(50.4% labor saved)* |
+| **Minutes Away From Counter** | 0 mins | 278 mins *(unattended 58% of shift)*| **69 mins** *(75.2% counter presence boost)*|
 | **Dollars Lost to Shoplifting**| \$0.00 *(counter never left)* | \$29.99 *(stolen while in backroom)* | **\$0.00** *(thefts actively deterred)*|
-| **Theft Incidents Deterred** | 10 | 8 | **10 / 10** *(100% deterrence)* |
-| **Cross-Dock Units Saved** | 23 units | 0 units | **23 units** *(direct pallet-to-shelf)* |
+| **Theft Incidents Deterred** | 10 / 10 | 8 / 9 | **10 / 10** *(100% deterrence)* |
+
+### Multi-Shift Monte Carlo Benchmark ($N=50$ Shifts / 400 Simulated Hours):
+
+```bash
+python3 benchmark.py --monte-carlo --shifts 50
+```
+
+| Operational Metric (Mean $\pm$ SD) | Strategy A: Never Restock | Strategy B: Naive Immediate Restock | Strategy C: AI Copilot (Ours) |
+| :--- | :--- | :--- | :--- |
+| **Total Sales Captured** | \$1,148.56 $\pm$ \$62.00 | \$2,259.07 $\pm$ \$204.97 | **\$2,259.17 $\pm$ \$204.53** *(99.9% captured)* |
+| **Lost Sales from Stockouts** | \$1,111.94 $\pm$ \$195.23 | \$0.00 $\pm$ \$0.00 | **\$1.32 $\pm$ \$6.89** *(near-zero loss)* |
+| **Restock Trips Walked** | 0.0 $\pm$ 0.0 trips | 119.4 $\pm$ 7.6 trips | **67.2 $\pm$ 5.7 trips** *(43.7% trip reduction)* |
+| **Minutes Away From Counter** | 0.0 $\pm$ 0.0 mins | 238.8 $\pm$ 15.2 mins | **67.2 $\pm$ 5.7 mins** *(71.9% counter absence reduction)* |
+| **Dollars Lost to Shoplifting**| \$0.00 $\pm$ \$0.00 | \$62.02 $\pm$ \$42.39 | **\$0.00 $\pm$ \$0.00** *(zero theft loss)* |
+| **Theft Deterrence Rate** | 322 / 322 (100.0%) | 165 / 265 (62.3%) | **322 / 322 (100.0%)** *(inhibit locks active)* |
 
 ---
 
@@ -232,6 +246,6 @@ python3 demo.py
 
 - **Operations Research & Optimization**: Constrained Knapsack problem formulation, non-linear urgency scoring, Poisson queueing models, and inventory consolidation.
 - **Systems & Software Architecture**: Event-driven decoupled design, atomic state machines, deterministic discrete-event simulation, and real-time telemetry processing.
-- **Physical Computing & Edge AI Integration**: Computer vision dwell tracking, optical tripwire audits, and document OCR/VLM invoice ingestion.
+- **Cyber-Physical Operations & Sensor Integration**: Queue and dwell-time sensor telemetry, optical tripwire audits, state-gated loss prevention locks, and structured delivery manifest ingestion.
 - **Frontend Systems Engineering**: High-performance HTML5 Canvas rendering, 60 FPS animation loops, state-synchronized reactive HUD, and responsive UI.
 - **Testing & Quality Assurance**: 100% passing unit test coverage, automated security scanners, and continuous architectural invariant verification.
