@@ -6,13 +6,13 @@
 // --- 1. Product Catalog & Physical Facings ---
 const CATALOG = [
   {
-    id: "SKU-TITOS-750",
-    name: "Tito's Vodka 750ml",
-    category: "Vodka",
+    id: "SKU-ENERGY-16OZ",
+    name: "Vitality Energy Drink 16oz",
+    category: "Beverages",
     capacity: 5,
     packSize: 12,
-    retailPrice: 24.99,
-    unitCost: 16.00,
+    retailPrice: 3.49,
+    unitCost: 1.80,
     isHighTheft: false,
     shelfLoc: "Aisle 1 - Facing 1",
     rackLoc: "Backroom Rack A-2",
@@ -20,41 +20,41 @@ const CATALOG = [
     backroomCoords: { x: 740, y: 260 }
   },
   {
-    id: "SKU-CASAMIGOS-BLANCO-750",
-    name: "Casamigos Blanco 750ml",
-    category: "Tequila",
+    id: "SKU-USB-CHARGER",
+    name: "Braided 65W Fast Charger Kit",
+    category: "Electronics",
     capacity: 4,
     packSize: 6,
-    retailPrice: 56.99,
-    unitCost: 42.00,
+    retailPrice: 29.99,
+    unitCost: 14.00,
     isHighTheft: true,
-    shelfLoc: "Aisle 2 - Top Shelf",
+    shelfLoc: "Aisle 2 - High-Value Tech",
     rackLoc: "Backroom Rack B-3",
     shelfCoords: { x: 390, y: 230 },
     backroomCoords: { x: 820, y: 260 }
   },
   {
-    id: "SKU-HENNESSY-VS-375",
-    name: "Hennessy VS Cognac 375ml",
-    category: "Cognac",
+    id: "SKU-BT-EARBUDS",
+    name: "Pro Wireless Bluetooth Earbuds",
+    category: "Electronics",
     capacity: 6,
-    packSize: 24,
-    retailPrice: 26.99,
-    unitCost: 18.50,
+    packSize: 10,
+    retailPrice: 49.99,
+    unitCost: 25.00,
     isHighTheft: true,
-    shelfLoc: "Aisle 2 - Top Shelf",
+    shelfLoc: "Aisle 2 - High-Value Tech",
     rackLoc: "Backroom Rack B-2",
     shelfCoords: { x: 390, y: 310 },
     backroomCoords: { x: 820, y: 330 }
   },
   {
-    id: "SKU-FIREBALL-50",
-    name: "Fireball 50ml Sleeves (10pk)",
-    category: "Shooters",
+    id: "SKU-PROTEIN-BARS",
+    name: "Artisan Protein Bars 10-Pack",
+    category: "Snacks",
     capacity: 8,
-    packSize: 120,
-    retailPrice: 11.99,
-    unitCost: 7.50,
+    packSize: 24,
+    retailPrice: 15.99,
+    unitCost: 8.50,
     isHighTheft: true,
     shelfLoc: "Register Counter Tier 1",
     rackLoc: "Backroom Rack A-1",
@@ -62,15 +62,15 @@ const CATALOG = [
     backroomCoords: { x: 740, y: 330 }
   },
   {
-    id: "SKU-MODELO-12PK",
-    name: "Modelo Especial 12pk",
-    category: "Beer",
+    id: "SKU-SPARKLING-12PK",
+    name: "Craft Sparkling Water 12pk",
+    category: "Beverages",
     capacity: 6,
     packSize: 2,
-    retailPrice: 20.99,
-    unitCost: 15.00,
+    retailPrice: 10.99,
+    unitCost: 6.00,
     isHighTheft: false,
-    shelfLoc: "Cooler Door 2",
+    shelfLoc: "Cold Vault Door 2",
     rackLoc: "Backroom Floor Pallet C",
     shelfCoords: { x: 670, y: 120 },
     backroomCoords: { x: 780, y: 440 }
@@ -119,8 +119,8 @@ const State = {
 CATALOG.forEach(sku => {
   State.inventory[sku.id] = {
     shelf: sku.capacity,
-    fullCases: sku.id.includes("MODELO") ? 5 : (sku.id.includes("TITOS") ? 3 : 2),
-    looseUnits: sku.id.includes("FIREBALL") ? 14 : 2
+    fullCases: sku.id.includes("SPARKLING") ? 5 : (sku.id.includes("ENERGY") ? 4 : 2),
+    looseUnits: sku.id.includes("PROTEIN") ? 14 : 2
   };
 });
 
@@ -130,12 +130,12 @@ const ctx = canvas.getContext("2d");
 
 // Layout zones
 const MAP = {
-  counter: { x: 380, y: 430, w: 180, h: 50, label: "POS360 REGISTER COUNTER" },
+  counter: { x: 380, y: 430, w: 180, h: 50, label: "POS REGISTER COUNTER" },
   queueArea: { x: 420, y: 485, w: 100, h: 60 },
-  aisle1: { x: 110, y: 180, w: 130, h: 220, label: "AISLE 1: VODKA & RUM" },
-  aisle2: { x: 330, y: 180, w: 130, h: 220, label: "AISLE 2: TOP-SHELF SPIRITS" },
-  cooler: { x: 530, y: 70, w: 320, h: 60, label: "BEER & SELTZER COOLER DOORS" },
-  backroom: { x: 690, y: 180, w: 220, h: 350, label: "DEEP BACKROOM STORAGE" },
+  aisle1: { x: 110, y: 180, w: 130, h: 220, label: "AISLE 1: SNACKS & ESSENTIALS" },
+  aisle2: { x: 330, y: 180, w: 130, h: 220, label: "AISLE 2: HIGH-VALUE TECH" },
+  cooler: { x: 530, y: 70, w: 320, h: 60, label: "BEVERAGE & REFRIGERATED WALL" },
+  backroom: { x: 690, y: 180, w: 220, h: 350, label: "BACKROOM CARTON STORAGE" },
   entrance: { x: 70, y: 500, w: 110, h: 50, label: "ENTRANCE / EXIT" }
 };
 
@@ -256,11 +256,11 @@ function drawCooler(zone) {
     ctx.fillRect(zone.x + (d * doorW) + 4, zone.y + 4, doorW - 8, zone.h - 8);
   }
 
-  // Modelo facing
-  const modeloInv = State.inventory["SKU-MODELO-12PK"];
+  // Sparkling Water facing
+  const sparklingInv = State.inventory["SKU-SPARKLING-12PK"];
   ctx.fillStyle = "#fff";
   ctx.font = "9px Outfit";
-  ctx.fillText(`Modelo 12pk [Door 2]: ${modeloInv.shelf}/6`, zone.x + doorW + 8, zone.y + 35);
+  ctx.fillText(`Sparkling 12pk [Door 2]: ${sparklingInv.shelf}/6`, zone.x + doorW + 8, zone.y + 35);
 }
 
 function drawBackroom(zone) {
@@ -282,9 +282,9 @@ function drawBackroom(zone) {
   ctx.fillText("DOOR", zone.x - 8, zone.y + 145);
 
   // Racks A & B
-  drawRack(zone.x + 20, zone.y + 30, 80, 120, "RACK A (Vodka/Shooters)");
-  drawRack(zone.x + 115, zone.y + 30, 80, 120, "RACK B (Top-Shelf)");
-  drawRack(zone.x + 20, zone.y + 190, 175, 120, "FLOOR PALLET (Beer Cases)");
+  drawRack(zone.x + 20, zone.y + 30, 80, 120, "RACK A (Beverages/Snacks)");
+  drawRack(zone.x + 115, zone.y + 30, 80, 120, "RACK B (High-Value Tech)");
+  drawRack(zone.x + 20, zone.y + 190, 175, 120, "FLOOR PALLET (Multi-Pack Cases)");
 }
 
 function drawRack(x, y, w, h, title) {
@@ -317,13 +317,13 @@ function drawCounter(zone) {
   ctx.font = "bold 8px JetBrains Mono";
   ctx.fillText("POS", zone.x + 78, zone.y + 27);
 
-  // Fireball shooter bin
-  const fireballInv = State.inventory["SKU-FIREBALL-50"];
+  // Protein bars impulse bin
+  const proteinInv = State.inventory["SKU-PROTEIN-BARS"];
   ctx.fillStyle = "rgba(239, 68, 68, 0.2)";
   ctx.fillRect(zone.x + 12, zone.y + 10, 45, 30);
   ctx.fillStyle = "#fca5a5";
   ctx.font = "8px Outfit";
-  ctx.fillText(`Fireball: ${fireballInv.shelf}/8`, zone.x + 14, zone.y + 28);
+  ctx.fillText(`Protein: ${proteinInv.shelf}/8`, zone.x + 14, zone.y + 28);
 }
 
 function drawEntrance(zone) {
@@ -360,17 +360,17 @@ function drawClerk(clerk) {
   ctx.fillStyle = "#fff";
   ctx.font = "bold 10px Outfit";
   ctx.textAlign = "center";
-  ctx.fillText("CLERK", clerk.x, clerk.y - 18);
+  ctx.fillText("ASSOCIATE", clerk.x, clerk.y - 18);
   ctx.textAlign = "left";
 
   // Carrying payload indicator
   if (clerk.basket.length > 0) {
-    const totalBottles = clerk.basket.reduce((a, b) => a + b.qty, 0);
+    const totalUnits = clerk.basket.reduce((a, b) => a + b.qty, 0);
     ctx.fillStyle = "#10b981";
     ctx.fillRect(clerk.x - 18, clerk.y + 14, 36, 14);
     ctx.fillStyle = "#000";
     ctx.font = "bold 8px JetBrains Mono";
-    ctx.fillText(`📦 ${totalBottles} Btls`, clerk.x - 14, clerk.y + 24);
+    ctx.fillText(`📦 ${totalUnits} Units`, clerk.x - 16, clerk.y + 24);
   }
 }
 
@@ -413,7 +413,7 @@ function drawDeliveryTruck(x, y) {
 
   ctx.fillStyle = "#00f2fe";
   ctx.font = "bold 8px JetBrains Mono";
-  ctx.fillText("SGWS TRUCK", x + 10, y + 26);
+  ctx.fillText("APEX TRUCK", x + 10, y + 26);
 }
 
 // --- 4. Simulation Engine Tick ---
@@ -449,7 +449,7 @@ function updateSimulation() {
 
     if (inHighTheft && c.dwellSeconds >= 30) {
       State.isTheftInhibited = true;
-      State.inhibitReason = `Customer lingering ${Math.floor(c.dwellSeconds)}s in Top-Shelf Aisle. Maintain presence at register.`;
+      State.inhibitReason = `Customer lingering ${Math.floor(c.dwellSeconds)}s in High-Value Tech Aisle. Maintain presence at register.`;
     }
 
     // Customer State Machine
@@ -459,21 +459,21 @@ function updateSimulation() {
           // Attempt Shoplifting
           const clerkAtRegister = (Math.hypot(State.clerk.x - 470, State.clerk.y - 470) < 50);
           if (clerkAtRegister) {
-            // Clerk is watching! Thief is deterred
+            // Associate is watching! Thief is deterred
             State.theftsDeterred++;
-            showToast("Theft Deterred: Clerk visual eye-contact stopped concealment in Aisle 2!", "success");
+            showToast("Theft Deterred: Associate visual eye-contact stopped concealment in High-Value Tech Aisle!", "success");
             c.state = "EXITING";
             c.targetX = MAP.entrance.x + 30;
             c.targetY = MAP.entrance.y + 20;
           } else {
-            // Clerk is in the backroom! Shoplifter steals
+            // Associate is in the backroom! Shoplifter steals
             const targetSku = CATALOG.find(s => s.id === c.targetSkuId);
             const inv = State.inventory[targetSku.id];
             if (inv.shelf > 0) {
               inv.shelf--;
               State.theftsSucceeded++;
               State.theftDollarsLost += targetSku.retailPrice;
-              showToast(`CRITICAL SHRINK: ${targetSku.name} pocketed while clerk in backroom!`, "alert");
+              showToast(`CRITICAL SHRINK: ${targetSku.name} pocketed while associate in backroom!`, "alert");
             }
             c.state = "EXITING";
             c.targetX = MAP.entrance.x + 30;
@@ -763,22 +763,22 @@ document.getElementById("btn-rush-hour").addEventListener("click", () => {
 });
 
 document.getElementById("btn-theft-attempt").addEventListener("click", () => {
-  showToast("Security flag: Shoplifter entering, targeting Top-Shelf Tequila!", "alert");
+  showToast("Security flag: Shoplifter entering, targeting High-Value Tech!", "alert");
   spawnCustomer(true);
 });
 
 document.getElementById("btn-truck-delivery").addEventListener("click", () => {
   State.truck.active = true;
   State.truck.x = 980;
-  showToast("Supplier Delivery: Southern Glazer's truck rolled in with 9 cases!", "success");
+  showToast("Supplier Delivery: Apex National truck rolled in with 9 cases!", "success");
   document.getElementById("po-modal").classList.remove("hidden");
   populateInvoiceModal();
 });
 
 document.getElementById("btn-uber-eats").addEventListener("click", () => {
-  showToast("Uber Eats Order #UE-402: 1x Casamigos Blanco, 1x Modelo 12pk", "success");
+  showToast("Courier Order #ORD-402: 1x Fast Charger Kit, 1x Sparkling Water 12pk", "success");
   CATALOG.forEach(s => {
-    if (s.id.includes("CASAMIGOS") || s.id.includes("MODELO")) {
+    if (s.id.includes("CHARGER") || s.id.includes("SPARKLING")) {
       if (State.inventory[s.id].shelf > 0) {
         State.inventory[s.id].shelf--;
         State.totalSales += s.retailPrice;
@@ -803,10 +803,10 @@ document.getElementById("btn-reset-sim").addEventListener("click", () => {
 function populateInvoiceModal() {
   const tbody = document.getElementById("invoice-tbody");
   const invoiceItems = [
-    { code: "SG-4821", name: "Tito's Handmade Vodka 750ml", pack: 12, cases: 4, cost: 16.25, total: 780.00, crossDock: "1 unit ➔ Aisle 1" },
-    { code: "SG-9012", name: "Casamigos Tequila Blanco 750ml", pack: 6, cases: 2, cost: 42.00, total: 504.00, crossDock: "Stored Rack B-3" },
-    { code: "SG-1102", name: "Hennessy VS Cognac 375ml", pack: 24, cases: 2, cost: 18.50, total: 888.00, crossDock: "Stored Rack B-2" },
-    { code: "SG-0303", name: "Fireball Cinnamon Whisky 50ml", pack: 120, cases: 1, cost: 102.00, total: 102.00, crossDock: "6 units ➔ Counter" }
+    { code: "APX-4821", name: "Vitality Energy Drink 16oz (12pk)", pack: 12, cases: 4, cost: 1.80, total: 86.40, crossDock: "1 unit ➔ Aisle 1" },
+    { code: "APX-9012", name: "Braided 65W Fast Charger Kit", pack: 6, cases: 2, cost: 14.00, total: 168.00, crossDock: "Stored Rack B-3" },
+    { code: "APX-1102", name: "Pro Wireless Bluetooth Earbuds", pack: 10, cases: 2, cost: 25.00, total: 500.00, crossDock: "Stored Rack B-2" },
+    { code: "APX-0303", name: "Artisan Protein Bars 10-Pack", pack: 24, cases: 1, cost: 8.50, total: 204.00, crossDock: "6 units ➔ Counter" }
   ];
 
   tbody.innerHTML = invoiceItems.map(item => `
@@ -834,8 +834,8 @@ document.getElementById("btn-close-modal").addEventListener("click", () => {
 document.getElementById("btn-apply-crossdock").addEventListener("click", () => {
   // Apply cross-docking to inventory
   State.crossDockUnits += 7;
-  State.inventory["SKU-TITOS-750"].shelf = Math.min(5, State.inventory["SKU-TITOS-750"].shelf + 1);
-  State.inventory["SKU-FIREBALL-50"].shelf = Math.min(8, State.inventory["SKU-FIREBALL-50"].shelf + 6);
+  State.inventory["SKU-ENERGY-16OZ"].shelf = Math.min(5, State.inventory["SKU-ENERGY-16OZ"].shelf + 1);
+  State.inventory["SKU-PROTEIN-BARS"].shelf = Math.min(8, State.inventory["SKU-PROTEIN-BARS"].shelf + 6);
   document.getElementById("po-modal").classList.add("hidden");
   showToast("Cross-dock putaway applied! 7 units stocked straight to floor, saving 2 trips.", "success");
 });

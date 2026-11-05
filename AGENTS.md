@@ -13,7 +13,7 @@ Every agent or developer working in this repository must maintain the structural
 
 2. **Strict Inventory Conservation**:
    - Any code modifying inventory must update `shelf_units`, `backroom_full_cases`, or `backroom_loose_units` atomically.
-   - Partial cases must always track remaining loose units so bottles are never lost or orphaned in the backroom.
+   - Partial cases must always track remaining loose units so items or loose units are never lost or orphaned in the backroom.
 
 3. **Loss Prevention Gating Integrity**:
    - The Restock Dispatcher must NEVER bypass the `TheftGuard.evaluate_restock_inhibit()` check.

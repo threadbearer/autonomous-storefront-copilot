@@ -13,10 +13,10 @@ class TestTheftGuard(unittest.TestCase):
         )
 
     def test_high_theft_dwell_alert_and_inhibit(self):
-        # Customer enters high theft zone (Top shelf tequila)
+        # Customer enters high theft zone (High-Value Tech)
         alert = self.guard.update_customer_dwell(
             customer_id="CUST-99",
-            zone="Top-Shelf Tequila",
+            zone="High-Value Tech Zone",
             is_high_theft_zone=True,
             dwell_seconds=15.0,
         )
@@ -25,19 +25,19 @@ class TestTheftGuard(unittest.TestCase):
         # Approaching threshold (32s is >= 40 * 0.75) -> Inhibit lock should activate!
         self.guard.update_customer_dwell(
             customer_id="CUST-99",
-            zone="Top-Shelf Tequila",
+            zone="High-Value Tech Zone",
             is_high_theft_zone=True,
             dwell_seconds=32.0,
         )
         is_inhibited, reason = self.guard.evaluate_restock_inhibit()
         self.assertTrue(is_inhibited)
         self.assertIn("INHIBIT", reason)
-        self.assertIn("Top-Shelf Tequila", reason)
+        self.assertIn("High-Value Tech Zone", reason)
 
         # Exceeding threshold (45s >= 40s) -> raises alert
         alert = self.guard.update_customer_dwell(
             customer_id="CUST-99",
-            zone="Top-Shelf Tequila",
+            zone="High-Value Tech Zone",
             is_high_theft_zone=True,
             dwell_seconds=45.0,
         )
@@ -49,14 +49,14 @@ class TestTheftGuard(unittest.TestCase):
         # Customer spent 30s in high theft aisle
         self.guard.update_customer_dwell(
             customer_id="CUST-42",
-            zone="Bourbon Aisle",
+            zone="High-Value Electronics Aisle",
             is_high_theft_zone=True,
             dwell_seconds=30.0,
         )
         # Exits without paying
         exit_alert = self.guard.check_exit_tripwire("CUST-42")
         self.assertIsNotNone(exit_alert)
-        self.assertEqual(exit_alert.alert_type, "UNPAID_EXIT")
+        self.assertEqual(alert_type := exit_alert.alert_type, "UNPAID_EXIT")
         self.assertEqual(exit_alert.severity, "CRITICAL")
 
 

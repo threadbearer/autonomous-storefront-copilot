@@ -12,7 +12,7 @@ class TestBatcherAndDispatcher(unittest.TestCase):
     def setUp(self):
         self.dt = DigitalTwin()
         self.theft_guard = TheftGuard()
-        self.batcher = RestockBatcher(max_bottles_per_trip=4, max_weight_lbs=15.0)
+        self.batcher = RestockBatcher(max_units_per_trip=4, max_weight_lbs=15.0)
         self.dispatcher = RestockDispatcher(
             digital_twin=self.dt,
             theft_guard=self.theft_guard,
@@ -20,26 +20,26 @@ class TestBatcherAndDispatcher(unittest.TestCase):
             min_urgency_threshold=0.5,
         )
 
-        # SKU 1: High velocity vodka
-        self.vodka = SKU(
-            sku_id="SKU-VODKA-1",
+        # SKU 1: High velocity retail SKU
+        self.sample_sku = SKU(
+            sku_id="SKU-FAST-MOVER-1",
             upc="0111111",
-            name="Top Vodka 750ml",
-            category=Category.VODKA,
+            name="Braided 65W Fast Charger Kit",
+            category=Category.ELECTRONICS,
             shelf_capacity=6,
-            unit_weight_lbs=3.0,
-            wholesale_unit_cost=15.0,
-            retail_price=25.0,
+            unit_weight_lbs=0.6,
+            wholesale_unit_cost=14.0,
+            retail_price=29.99,
             shelf_location=PhysicalLocation(StorageZone.FRONT_SHELF, "Aisle 1", 2, "Slot 1"),
             backroom_location=PhysicalLocation(StorageZone.BACKROOM_RACK, "Rack A", 1, "Bin 1"),
         )
-        self.dt.register_sku(self.vodka, initial_shelf=1, initial_cases=2, initial_loose=3)
+        self.dt.register_sku(self.sample_sku, initial_shelf=1, initial_cases=2, initial_loose=3)
 
     def test_knapsack_respects_limits(self):
         basket, score = self.batcher.assemble_optimal_trip(self.dt)
         self.assertGreater(len(basket), 0)
-        total_bottles = sum(item.quantity for item in basket)
-        self.assertLessEqual(total_bottles, 4)  # max_bottles_per_trip is 4
+        total_units = sum(item.quantity for item in basket)
+        self.assertLessEqual(total_units, 4)  # max_units_per_trip is 4
         self.assertGreater(score, 0.0)
 
     def test_dispatcher_blocked_by_counter_queue(self):
@@ -52,7 +52,7 @@ class TestBatcherAndDispatcher(unittest.TestCase):
         # Trigger theft loitering in high-theft zone
         self.theft_guard.update_customer_dwell(
             customer_id="SUSPECT-1",
-            zone="Cognac Aisle",
+            zone="High-Value Tech Aisle",
             is_high_theft_zone=True,
             dwell_seconds=40.0,
         )
@@ -66,7 +66,7 @@ class TestBatcherAndDispatcher(unittest.TestCase):
             counter_queue_length=0, estimated_arrival_rate_per_min=0.1
         )
         self.assertIsNotNone(dispatch)
-        self.assertEqual(dispatch.items[0].sku_id, "SKU-VODKA-1")
+        self.assertEqual(dispatch.items[0].sku_id, "SKU-FAST-MOVER-1")
         self.assertGreater(dispatch.quiet_window_estimate_seconds, 60)
 
 

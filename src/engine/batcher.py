@@ -23,11 +23,20 @@ class RestockBatcher:
 
     def __init__(
         self,
-        max_bottles_per_trip: int = 6,
+        max_units_per_trip: Optional[int] = None,
         max_weight_lbs: float = 24.0,
         partial_case_clear_bonus: float = 1.5,
+        max_bottles_per_trip: Optional[int] = None,
     ):
-        self.max_bottles_per_trip = max_bottles_per_trip
+        if max_units_per_trip is not None:
+            self.max_units_per_trip = max_units_per_trip
+        elif max_bottles_per_trip is not None:
+            self.max_units_per_trip = max_bottles_per_trip
+        else:
+            self.max_units_per_trip = 6
+
+        # Alias for backward compatibility
+        self.max_bottles_per_trip = self.max_units_per_trip
         self.max_weight_lbs = max_weight_lbs
         self.partial_case_clear_bonus = partial_case_clear_bonus
 

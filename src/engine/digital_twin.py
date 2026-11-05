@@ -1,4 +1,4 @@
-"""Digital twin maintaining real-time physical store state: shelf facings, backroom cases, loose bottles, and deliveries."""
+"""Digital twin maintaining real-time physical store state: shelf facings, backroom master cases, loose units, and supplier shipments."""
 
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta

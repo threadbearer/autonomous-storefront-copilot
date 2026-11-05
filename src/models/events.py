@@ -100,5 +100,9 @@ class RestockDispatch:
     rationale: str
 
     @property
-    def total_bottles(self) -> int:
+    def total_units(self) -> int:
         return sum(item.quantity for item in self.items)
+
+    @property
+    def total_bottles(self) -> int:
+        return self.total_units

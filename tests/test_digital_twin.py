@@ -12,31 +12,31 @@ from src.models.sku import SKU, Category, PhysicalLocation, StorageZone
 class TestDigitalTwin(unittest.TestCase):
     def setUp(self):
         self.dt = DigitalTwin()
-        self.titos = SKU(
-            sku_id="SKU-TITOS-750",
+        self.sample_item = SKU(
+            sku_id="SKU-ENERGY-16OZ",
             upc="088004144694",
-            name="Tito's Handmade Vodka 750ml",
-            category=Category.VODKA,
+            name="Vitality Energy Drink 16oz",
+            category=Category.BEVERAGES,
             shelf_capacity=5,
             pack_size=12,
-            unit_weight_lbs=3.0,
-            wholesale_unit_cost=16.0,
-            retail_price=24.99,
+            unit_weight_lbs=1.1,
+            wholesale_unit_cost=1.80,
+            retail_price=3.49,
             shelf_location=PhysicalLocation(StorageZone.FRONT_SHELF, "Aisle 1", 3, "Slot 2"),
             backroom_location=PhysicalLocation(StorageZone.BACKROOM_RACK, "Rack A", 2, "Bin 1"),
         )
-        self.dt.register_sku(self.titos, initial_shelf=5, initial_cases=2, initial_loose=3)
+        self.dt.register_sku(self.sample_item, initial_shelf=5, initial_cases=2, initial_loose=3)
 
     def test_pos_sale_depletes_shelf(self):
-        inv = self.dt.inventory["SKU-TITOS-750"]
+        inv = self.dt.inventory["SKU-ENERGY-16OZ"]
         self.assertEqual(inv.shelf_units, 5)
 
         event = POSSaleEvent(
             event_id="SALE-001",
             timestamp=datetime.now(),
             register_id="REG-1",
-            items=[POSSaleItem(sku_id="SKU-TITOS-750", quantity=2, unit_price=24.99)],
-            total_amount=49.98,
+            items=[POSSaleItem(sku_id="SKU-ENERGY-16OZ", quantity=2, unit_price=3.49)],
+            total_amount=6.98,
         )
         alerts = self.dt.process_pos_sale(event)
         self.assertEqual(inv.shelf_units, 3)
@@ -47,8 +47,8 @@ class TestDigitalTwin(unittest.TestCase):
             event_id="SALE-002",
             timestamp=datetime.now(),
             register_id="REG-1",
-            items=[POSSaleItem(sku_id="SKU-TITOS-750", quantity=2, unit_price=24.99)],
-            total_amount=49.98,
+            items=[POSSaleItem(sku_id="SKU-ENERGY-16OZ", quantity=2, unit_price=3.49)],
+            total_amount=6.98,
         )
         alerts2 = self.dt.process_pos_sale(event2)
         self.assertEqual(inv.shelf_units, 1)
@@ -56,23 +56,23 @@ class TestDigitalTwin(unittest.TestCase):
         self.assertIn("[SHELF LOW]", alerts2[0])
 
     def test_supplier_po_with_cross_docking(self):
-        inv = self.dt.inventory["SKU-TITOS-750"]
+        inv = self.dt.inventory["SKU-ENERGY-16OZ"]
         # Deplete shelf to 0
         inv.shelf_units = 0
 
         po = PaperPurchaseOrder(
-            distributor_name="Southern Glazer's",
+            distributor_name="Apex National Distribution",
             invoice_number="INV-1001",
             invoice_date="2026-10-30",
             line_items=[
                 POLineItem(
-                    sku_id="SKU-TITOS-750",
+                    sku_id="SKU-ENERGY-16OZ",
                     upc="088004144694",
-                    description="Tito's 750ml",
+                    description="Vitality Energy Drink 16oz",
                     pack_size=12,
                     cases_invoiced=3,
-                    bottle_cost=16.0,
-                    case_cost=192.0,
+                    unit_cost=1.80,
+                    case_cost=21.60,
                 )
             ],
         )

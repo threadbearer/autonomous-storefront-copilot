@@ -7,7 +7,7 @@ from typing import List, Optional
 
 @dataclass
 class PartialCase:
-    """Tracks an opened box in the backroom so loose bottles aren't lost or duplicated."""
+    """Tracks an opened box in the backroom so loose units aren't lost or duplicated."""
     sku_id: str
     remaining_units: int
     max_case_capacity: int
@@ -27,14 +27,14 @@ class PartialCase:
 
 @dataclass
 class SKUInventory:
-    """Tracks real-time stock across the 3 physical states in the liquor store."""
+    """Tracks real-time stock across the 3 physical states in the single-operator store."""
     sku_id: str
     shelf_units: int
     shelf_capacity: int
     backroom_full_cases: int
     backroom_loose_units: int
     pack_size: int
-    reserved_delivery_units: int = 0  # Units locked for Uber Eats / DoorDash picks
+    reserved_delivery_units: int = 0  # Units locked for Uber Eats / DoorDash / courier picks
 
     @property
     def total_backroom_units(self) -> int:
@@ -73,9 +73,16 @@ class POLineItem:
     description: str
     pack_size: int
     cases_invoiced: int
-    bottle_cost: float
-    case_cost: float
+    unit_cost: float = 0.0
+    case_cost: float = 0.0
     cases_received: Optional[int] = None  # None until verified by clerk
+    bottle_cost: Optional[float] = None   # Backward-compatible alias for unit_cost
+
+    def __post_init__(self):
+        if self.bottle_cost is not None and self.unit_cost == 0.0:
+            self.unit_cost = self.bottle_cost
+        elif self.bottle_cost is None:
+            self.bottle_cost = self.unit_cost
 
     @property
     def total_units(self) -> int:
@@ -84,8 +91,8 @@ class POLineItem:
 
 @dataclass
 class PaperPurchaseOrder:
-    """Structured representation of a physical paper invoice from a liquor/beer distributor."""
-    distributor_name: str  # e.g., "Southern Glazer's Wine & Spirits", "RNDC", "Breakthru"
+    """Structured representation of a physical paper invoice from a commercial distributor."""
+    distributor_name: str  # e.g., "Apex National Distribution", "Metro Wholesale Logistics"
     invoice_number: str
     invoice_date: str
     line_items: List[POLineItem] = field(default_factory=list)

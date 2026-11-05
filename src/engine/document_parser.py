@@ -7,9 +7,14 @@ from src.models.inventory import PaperPurchaseOrder, POLineItem
 
 
 class PurchaseOrderParser:
-    """Parses digitized paper purchase orders/invoices from liquor distributors into structured data."""
+    """Parses digitized paper purchase orders/invoices from commercial retail distributors into structured data."""
 
     DISTRIBUTOR_TEMPLATES = {
+        "APEX": "Apex National Distribution Partners",
+        "METRO": "Metro Wholesale Logistics",
+        "COREMARK": "Core-Mark Retail Distribution",
+        "SYSCO": "Sysco Commercial Goods",
+        # Backward compatibility aliases
         "SGWS": "Southern Glazer's Wine & Spirits",
         "RNDC": "Republic National Distributing Company",
         "BREAKTHRU": "Breakthru Beverage Group",
@@ -19,13 +24,14 @@ class PurchaseOrderParser:
     @classmethod
     def parse_extracted_payload(cls, raw_data: Dict[str, Any]) -> PaperPurchaseOrder:
         """Converts raw OCR/VLM extracted JSON into a validated PaperPurchaseOrder object."""
-        distributor = raw_data.get("distributor_name", "Unknown Distributor")
+        distributor = raw_data.get("distributor_name", "Apex National Distribution Partners")
         inv_num = raw_data.get("invoice_number", f"INV-{date.today().strftime('%Y%m%d')}-001")
         inv_date = raw_data.get("invoice_date", date.today().isoformat())
         confidence = float(raw_data.get("ocr_confidence", 0.95))
 
         line_items: List[POLineItem] = []
         for item in raw_data.get("line_items", []):
+            cost = float(item.get("unit_cost", item.get("bottle_cost", 0.0)))
             line_items.append(
                 POLineItem(
                     sku_id=item["sku_id"],
@@ -33,9 +39,10 @@ class PurchaseOrderParser:
                     description=item.get("description", ""),
                     pack_size=int(item.get("pack_size", 12)),
                     cases_invoiced=int(item.get("cases_invoiced", 1)),
-                    bottle_cost=float(item.get("bottle_cost", 0.0)),
+                    unit_cost=cost,
                     case_cost=float(item.get("case_cost", 0.0)),
                     cases_received=item.get("cases_received"),
+                    bottle_cost=cost,
                 )
             )
 
@@ -50,53 +57,53 @@ class PurchaseOrderParser:
 
     @classmethod
     def create_mock_delivery_invoice(
-        cls, distributor_code: str = "SGWS"
+        cls, distributor_code: str = "APEX"
     ) -> PaperPurchaseOrder:
         """Generates a realistic sample weekly delivery invoice for testing."""
         distributor_name = cls.DISTRIBUTOR_TEMPLATES.get(
-            distributor_code, "Southern Glazer's Wine & Spirits"
+            distributor_code, "Apex National Distribution Partners"
         )
         sample_payload = {
             "distributor_name": distributor_name,
-            "invoice_number": f"SG-{date.today().strftime('%m%d')}-9401",
+            "invoice_number": f"APX-{date.today().strftime('%m%d')}-8842",
             "invoice_date": date.today().isoformat(),
             "ocr_confidence": 0.98,
             "line_items": [
                 {
-                    "sku_id": "SKU-TITOS-750",
+                    "sku_id": "SKU-ENERGY-16OZ",
                     "upc": "088004144694",
-                    "description": "Tito's Handmade Vodka 750ml",
+                    "description": "Vitality Energy Drink 16oz (12pk)",
                     "pack_size": 12,
                     "cases_invoiced": 4,
-                    "bottle_cost": 16.25,
-                    "case_cost": 195.00,
+                    "unit_cost": 1.80,
+                    "case_cost": 21.60,
                 },
                 {
-                    "sku_id": "SKU-CASAMIGOS-BLANCO-750",
+                    "sku_id": "SKU-USB-CHARGER",
                     "upc": "858000005018",
-                    "description": "Casamigos Tequila Blanco 750ml",
+                    "description": "Braided 65W Fast Charger Kit",
                     "pack_size": 6,
                     "cases_invoiced": 2,
-                    "bottle_cost": 42.00,
-                    "case_cost": 252.00,
+                    "unit_cost": 14.00,
+                    "case_cost": 84.00,
                 },
                 {
-                    "sku_id": "SKU-HENNESSY-VS-375",
+                    "sku_id": "SKU-BT-EARBUDS",
                     "upc": "088110551025",
-                    "description": "Hennessy VS Cognac 375ml",
-                    "pack_size": 24,
+                    "description": "Pro Wireless Bluetooth Earbuds",
+                    "pack_size": 10,
                     "cases_invoiced": 2,
-                    "bottle_cost": 18.50,
-                    "case_cost": 444.00,
+                    "unit_cost": 25.00,
+                    "case_cost": 250.00,
                 },
                 {
-                    "sku_id": "SKU-FIREBALL-50",
+                    "sku_id": "SKU-PROTEIN-BARS",
                     "upc": "088004000303",
-                    "description": "Fireball Cinnamon Whisky 50ml Sleeves",
-                    "pack_size": 120,
+                    "description": "Artisan Protein Bars 10-Pack",
+                    "pack_size": 24,
                     "cases_invoiced": 1,
-                    "bottle_cost": 0.85,
-                    "case_cost": 102.00,
+                    "unit_cost": 8.50,
+                    "case_cost": 204.00,
                 },
             ],
         }

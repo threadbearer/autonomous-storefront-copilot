@@ -85,7 +85,7 @@ def analyze_codebase() -> Tuple[List[str], List[Dict[str, Any]]]:
     findings.append(
         "**Token & Context Efficiency**:\n"
         "  - The Restock Urgency Index ($RUI$) and Knapsack batcher in `src/engine/batcher.py` directly reduce "
-        "payload bloat by consolidating multiple replenishment runs into a single bounded 6-bottle carry basket.\n"
+        "payload bloat by consolidating multiple replenishment runs into a single bounded 6-unit carry basket.\n"
         "  - The 2D Canvas simulator uses continuous local rendering with zero server polling latency."
     )
 
@@ -96,11 +96,11 @@ def analyze_codebase() -> Tuple[List[str], List[Dict[str, Any]]]:
         with open(web_app_path, "r") as fp:
             web_content = fp.read()
         
-        has_titos = "SKU-TITOS-750" in web_content
-        has_casamigos = "SKU-CASAMIGOS-BLANCO-750" in web_content
-        if has_titos and has_casamigos:
+        has_energy = "SKU-ENERGY-16OZ" in web_content
+        has_charger = "SKU-USB-CHARGER" in web_content
+        if has_energy and has_charger:
             findings.append(
-                "**Cross-File Invariant Alignment**: Verified that SKU IDs (`SKU-TITOS-750`, `SKU-CASAMIGOS-BLANCO-750`) "
+                "**Cross-File Invariant Alignment**: Verified that SKU IDs (`SKU-ENERGY-16OZ`, `SKU-USB-CHARGER`) "
                 "and capacity constraints match 1:1 between Python backend models and client-side digital twin `web/app.js`."
             )
         else:
@@ -141,7 +141,7 @@ def analyze_codebase() -> Tuple[List[str], List[Dict[str, Any]]]:
     # Propose Architectural Rule for Single-Clerk Retail
     proposed_rules.append({
         "category": "Retail Operations Invariant",
-        "rule": "[Loss Prevention] Dwell Threshold Parity — High-theft category zones (top-shelf spirits, lockup consoles) must maintain a dwell threshold strictly under 45 seconds to catch concealment opportunists before checkout.",
+        "rule": "[Loss Prevention] Dwell Threshold Parity — High-theft category zones (high-value tech, lockup display, premium merchandise) must maintain a dwell threshold strictly under 45 seconds to catch concealment opportunists before checkout.",
         "rationale": "Solo associates need proactive warnings before a concealment gesture is completed."
     })
 

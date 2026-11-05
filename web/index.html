@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Autonomous Retail Copilot | Single-Clerk Liquor Store Logistics</title>
+  <title>Autonomous Retail Copilot | Single-Operator Storefront Logistics & Asset Protection</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -22,7 +22,7 @@
           <span class="logo-icon">⚡</span>
           <div class="brand-text">
             <h1>RETAIL COPILOT <span>v2.4</span></h1>
-            <p>Single-Clerk Autonomous Logistics & Loss Prevention Engine</p>
+            <p>Single-Operator Autonomous Store Logistics & Loss Prevention Engine</p>
           </div>
         </div>
         <div class="pos-badge">
@@ -99,8 +99,8 @@
           <span class="actions-label">Trigger Stress Scenarios:</span>
           <button class="btn btn-action" id="btn-rush-hour">🔥 Customer Rush Hour</button>
           <button class="btn btn-action" id="btn-theft-attempt">🚨 Shoplifter Loitering</button>
-          <button class="btn btn-action" id="btn-truck-delivery">🚚 Weekly Truck Delivery (SGWS)</button>
-          <button class="btn btn-action" id="btn-uber-eats">📱 Uber Eats Order</button>
+          <button class="btn btn-action" id="btn-truck-delivery">🚚 Weekly Truck Delivery (Apex)</button>
+          <button class="btn btn-action" id="btn-uber-eats">📱 Courier Order Pickup</button>
           <button class="btn btn-secondary" id="btn-reset-sim">↺ Reset Shift</button>
         </div>
       </section>
@@ -156,10 +156,10 @@
             <button class="btn-link" id="btn-open-po-modal">View Paper Manifest</button>
           </div>
           <div class="po-mini-summary" id="po-summary-box">
-            <div class="po-distributor-badge">Southern Glazer's Wine & Spirits</div>
+            <div class="po-distributor-badge">Apex National Distribution Partners</div>
             <div class="po-metrics-row">
               <span>Next Delivery: <strong>Wednesdays (11:00 AM)</strong></span>
-              <span>Last Invoiced: <strong>9 Cases ($2,274.00)</strong></span>
+              <span>Last Invoiced: <strong>9 Cases ($958.40)</strong></span>
             </div>
             <div class="crossdock-highlight" id="crossdock-banner">
               <span class="icon">⚡</span>
@@ -185,12 +185,12 @@
           <div class="invoice-paper-mock">
             <div class="invoice-header">
               <div>
-                <h3>SOUTHERN GLAZER'S WINE & SPIRITS</h3>
-                <p>2400 Distribution Way, Dallas TX 75201</p>
-                <p>Delivery To: <strong>Downtown Liquors & Fine Spirits</strong></p>
+                <h3>APEX NATIONAL DISTRIBUTION PARTNERS</h3>
+                <p>100 Logistics Blvd, Suite 400, Chicago IL 60607</p>
+                <p>Delivery To: <strong>Metro Express Storefront #104</strong></p>
               </div>
               <div class="invoice-meta">
-                <p>Invoice #: <strong>SG-1030-9401</strong></p>
+                <p>Invoice #: <strong>APX-1030-8842</strong></p>
                 <p>Date: <strong>2026-10-30</strong></p>
                 <p>Driver: <strong>Carlos M. (Route 4B)</strong></p>
                 <p class="ocr-tag">OCR Confidence: <strong>98.4%</strong></p>
@@ -205,7 +205,7 @@
                   <th>Description</th>
                   <th>Pack</th>
                   <th>Cases</th>
-                  <th>Bottle Cost</th>
+                  <th>Unit Cost</th>
                   <th>Case Total</th>
                   <th>Cross-Dock Routing</th>
                 </tr>
@@ -220,7 +220,7 @@
             <div class="banner-icon">⚡</div>
             <div class="banner-details">
               <h4>Cross-Dock Directives Generated (Saves 2 Backroom Trips!)</h4>
-              <p id="modal-crossdock-text">Take 1 unit of Tito's and 6 units of Fireball directly from the pallet to front shelves before stacking.</p>
+              <p id="modal-crossdock-text">Take 1 unit of Vitality Energy and 6 units of Protein Bars directly from pallet to front shelves before stacking.</p>
             </div>
             <button class="btn btn-primary" id="btn-apply-crossdock">Apply Putaway Plan</button>
           </div>

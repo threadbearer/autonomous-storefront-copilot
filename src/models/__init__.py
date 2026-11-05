@@ -1,4 +1,4 @@
-"""Models package for liquor store logistics."""
+"""Models package for single-operator retail storefront logistics."""
 
 from src.models.sku import SKU, Category, PhysicalLocation, StorageZone
 from src.models.inventory import SKUInventory, PartialCase, PaperPurchaseOrder, POLineItem

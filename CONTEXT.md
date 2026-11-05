@@ -1,9 +1,9 @@
 # CONTEXT.md — Architectural Invariants & System Blueprint
 
 ## 1. System Mission & Operational Scope
-The **Autonomous Retail Copilot** is a real-time logistics, labor optimization, and loss prevention engine designed for single-clerk high-velocity retail environments (liquor stores, convenience stores, and single-coverage specialty retail like GameStop).
+The **Autonomous Retail Copilot** is a real-time logistics, labor optimization, and loss prevention engine designed for single-operator storefronts and solo-shift retail environments (convenience stores, urban micro-markets, specialty electronics/telecom stores, pharmacy/health annexes, and quick-turn fulfillment depots).
 
-It solves the **asymmetric multi-tasking problem**: balancing front-counter checkout speed, stochastic customer arrival risks, single-facing shelf replenishment, backroom partial-case slotting, and high-value asset security.
+It solves the **asymmetric multi-tasking problem**: balancing front-counter checkout speed, stochastic customer arrival risks, single-facing shelf replenishment, backroom partial-case slotting, inbound supplier receiving, and high-value asset protection.
 
 ---
 
@@ -18,13 +18,13 @@ It solves the **asymmetric multi-tasking problem**: balancing front-counter chec
    State transitions (sales, delivery picks, supplier receiving, restock cracking) must strictly preserve this conservation law.
 
 3. **The Restock Inhibit Security Gate**:  
-   If any customer exhibits lingering dwell time ($\ge \text{threshold}$, e.g. $30\text{s}-40\text{s}$) in a `is_high_theft` zone or triggers concealment gestures, all restock dispatches are **strictly locked**. The clerk must remain at the counter as a visible deterrent.
+   If any customer exhibits lingering dwell time ($\ge \text{threshold}$, e.g. $30\text{s}-40\text{s}$) in a `is_high_theft` zone or triggers concealment gestures, all restock dispatches are **strictly locked**. The associate must remain at the counter as a visible deterrent.
 
 4. **The Exit Tripwire Invariant**:  
    Any customer exiting the store without a registered POS transaction within the grace period ($120\text{s}$) after spending $>20\text{s}$ in merchandising aisles triggers an automatic `UNPAID_EXIT` audit flag.
 
 5. **The Cross-Dock Directives Invariant**:  
-   When a supplier delivery is received, if an arriving SKU has an existing shelf deficit ($S_i < C_i$), the system must generate a **Cross-Dock Alert** instructing the clerk to stock units directly onto the floor before moving remaining cases into backroom racks.
+   When a supplier delivery is received, if an arriving SKU has an existing shelf deficit ($S_i < C_i$), the system must generate a **Cross-Dock Alert** instructing the associate to stock units directly onto the floor before moving remaining cases into backroom racks.
 
 ---
 
